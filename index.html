@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Car Price Lab — prototype สำหรับประเมินราคารถมือสอง">
+  <title>Car Price Lab — Demo</title>
+  <style>
+    :root {
+      --ink: #151719;
+      --muted: #6f7378;
+      --paper: #f5f4f0;
+      --panel: #ffffff;
+      --line: #dddcd5;
+      --accent: #e45b2f;
+      --accent-dark: #b33e1c;
+      --yellow: #f1c75b;
+      --green: #246b52;
+      --shadow: 0 18px 50px rgba(28, 29, 26, .10);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Noto Sans Thai", "Leelawadee UI", Tahoma, sans-serif;
+      line-height: 1.55;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+
+    .shell { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      min-height: 78px; border-bottom: 1px solid var(--line);
+    }
+    .brand { display: inline-flex; align-items: center; gap: 11px; font-weight: 800; letter-spacing: -.02em; }
+    .brand-mark {
+      width: 34px; height: 34px; display: grid; place-items: center;
+      color: var(--paper); background: var(--ink); border-radius: 10px;
+      font-size: 13px; letter-spacing: -.08em;
+    }
+    .brand small { display: block; color: var(--muted); font-weight: 500; font-size: 11px; letter-spacing: .04em; }
+    nav { display: flex; gap: 24px; color: var(--muted); font-size: 14px; }
+    nav a:hover, nav a:focus-visible { color: var(--accent-dark); }
+
+    .hero { display: grid; grid-template-columns: 1.12fr .88fr; gap: 58px; padding: 74px 0 62px; align-items: end; }
+    .eyebrow { display: flex; align-items: center; gap: 9px; color: var(--accent-dark); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--accent); }
+    h1 { max-width: 700px; margin: 17px 0 18px; font-size: clamp(38px, 6vw, 72px); line-height: 1.03; letter-spacing: -.065em; font-weight: 850; }
+    .hero-copy { max-width: 560px; color: var(--muted); font-size: 17px; }
+    .hero-note { display: flex; gap: 10px; align-items: flex-start; margin-top: 28px; color: #555950; font-size: 13px; }
+    .hero-note b { color: var(--ink); }
+    .hero-note::before { content: ""; flex: 0 0 8px; width: 8px; height: 8px; margin-top: 8px; border-radius: 50%; background: var(--yellow); }
+
+    .hero-side { position: relative; min-height: 250px; }
+    .route-card { position: absolute; inset: 10px 0 0 15px; padding: 26px; background: var(--ink); color: #f5f1e8; border-radius: 26px; box-shadow: var(--shadow); transform: rotate(2deg); }
+    .route-card::after { content: ""; position: absolute; width: 100px; height: 100px; right: 24px; bottom: 22px; border: 1px solid rgba(241,199,91,.5); border-radius: 50%; box-shadow: 0 0 0 16px rgba(241,199,91,.07), 0 0 0 32px rgba(241,199,91,.04); }
+    .route-card h2 { max-width: 270px; margin: 18px 0 8px; font-size: 29px; line-height: 1.08; letter-spacing: -.04em; }
+    .route-card p { max-width: 300px; margin: 0; color: #bab9b1; font-size: 13px; }
+    .route-label { display: inline-flex; padding: 5px 9px; border: 1px solid #55564e; border-radius: 99px; color: var(--yellow); font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+    .route-lines { position: absolute; left: 26px; right: 26px; bottom: 26px; display: flex; justify-content: space-between; color: #77786f; font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; }
+
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr); gap: 22px; align-items: start; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 6px 22px rgba(28,29,26,.035); }
+    .panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 27px 29px 0; }
+    .panel h2 { margin: 0; font-size: 22px; letter-spacing: -.035em; }
+    .panel-sub { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+    .mock-badge { padding: 6px 9px; border-radius: 7px; color: #8d4b17; background: #fff0d5; font-size: 10px; font-weight: 900; letter-spacing: .08em; white-space: nowrap; }
+    form { padding: 26px 29px 29px; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 19px 16px; }
+    .field { display: grid; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 750; }
+    .hint { color: var(--muted); font-size: 11px; font-weight: 400; }
+    input, select {
+      width: 100%; min-height: 47px; padding: 0 13px; color: var(--ink);
+      background: #fbfbf9; border: 1px solid var(--line); border-radius: 11px; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(228,91,47,.13); }
+    .form-foot { display: flex; gap: 11px; align-items: center; margin-top: 25px; }
+    .primary {
+      min-height: 48px; padding: 0 20px; border: 0; border-radius: 11px;
+      color: white; background: var(--accent); font-weight: 800; transition: .18s ease;
+    }
+    .primary:hover, .primary:focus-visible { background: var(--accent-dark); transform: translateY(-1px); }
+    .secondary { min-height: 48px; padding: 0 17px; border: 1px solid var(--line); border-radius: 11px; color: var(--ink); background: transparent; font-weight: 700; }
+    .secondary:hover, .secondary:focus-visible { border-color: var(--ink); }
+    .form-foot small { color: var(--muted); font-size: 11px; }
+
+    .result { min-height: 100%; overflow: hidden; }
+    .result-top { padding: 27px 29px 20px; background: #242522; color: #f7f4ec; }
+    .result-top h2 { font-size: 20px; }
+    .result-top .panel-sub { color: #b6b5ac; }
+    .result-body { padding: 25px 29px 29px; }
+    .result-placeholder { display: grid; min-height: 180px; place-items: center; text-align: center; border: 1px dashed #c7c6bd; border-radius: 14px; background: #fcfcfa; }
+    .result-placeholder strong { display: block; margin-bottom: 7px; font-size: 28px; letter-spacing: -.04em; }
+    .result-placeholder p { max-width: 220px; margin: 0; color: var(--muted); font-size: 12px; }
+    .result-data { display: none; }
+    .result-data.show { display: block; }
+    .result-placeholder.hide { display: none; }
+    .price-label { color: var(--muted); font-size: 12px; }
+    .mock-price { margin: 5px 0 3px; color: var(--accent-dark); font-size: 35px; font-weight: 850; letter-spacing: -.05em; }
+    .disclaimer { padding: 12px 13px; margin-top: 20px; color: #765c2c; background: #fff5dd; border-radius: 10px; font-size: 11px; }
+    .spec-row { display: flex; justify-content: space-between; gap: 15px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .spec-row span:first-child { color: var(--muted); }
+    .spec-row span:last-child { font-weight: 750; text-align: right; }
+
+    .section { padding: 86px 0; }
+    .section-head { display: flex; justify-content: space-between; gap: 30px; align-items: end; margin-bottom: 25px; }
+    .section h2 { margin: 0; font-size: 31px; letter-spacing: -.05em; }
+    .section-head p { max-width: 450px; margin: 0; color: var(--muted); font-size: 14px; }
+    .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .status-card { padding: 21px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.48); }
+    .status-card .kicker { color: var(--muted); font-size: 12px; }
+    .status-card strong { display: block; margin: 7px 0 3px; font-size: 25px; letter-spacing: -.04em; }
+    .status-card p { margin: 0; color: var(--muted); font-size: 12px; }
+    .status-card.ready strong { color: var(--green); }
+    footer { padding: 25px 0 42px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    footer span { color: var(--ink); font-weight: 800; }
+
+    @media (max-width: 850px) {
+      .hero { grid-template-columns: 1fr; gap: 20px; padding-top: 48px; }
+      .hero-side { min-height: 245px; }
+      .workspace { grid-template-columns: 1fr; }
+      .status-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 28px, 1160px); }
+      nav { gap: 12px; font-size: 12px; }
+      .field-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .panel-head, form, .result-top, .result-body { padding-left: 20px; padding-right: 20px; }
+      .form-foot { align-items: stretch; flex-direction: column; }
+      .form-foot small { text-align: center; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header class="shell topbar">
+    <a class="brand" href="#top" aria-label="Car Price Lab home">
+      <span class="brand-mark">CPL</span>
+      <span>Car Price Lab<small>used-car estimator / prototype</small></span>
+    </a>
+    <nav aria-label="เมนูหลัก">
+      <a href="#estimator">ประเมินราคา</a>
+      <a href="#status">สถานะโปรเจกต์</a>
+    </nav>
+  </header>
+
+  <main id="top" class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <div class="eyebrow">Demo 01 / serving contract</div>
+        <h1 id="hero-title">รู้ราคาก่อนตัดสินใจซื้อรถมือสอง</h1>
+        <p class="hero-copy">ต้นแบบหน้าเว็บสำหรับโปรเจกต์ Car Price Lab เริ่มจากข้อมูลที่ผู้ใช้กรอกได้จริง 4 ช่อง แล้วค่อยต่อเข้ากับโมเดลราคาที่ผ่านการทดสอบ</p>
+        <div class="hero-note"><span><b>สถานะตอนนี้:</b> หน้านี้เป็น UI prototype ผลลัพธ์ยังเป็น Mock และยังไม่ได้เชื่อมโมเดลจริง</span></div>
+      </div>
+      <div class="hero-side" aria-hidden="true">
+        <div class="route-card">
+          <span class="route-label">DATA → MODEL → PRICE</span>
+          <h2>จากประกาศรถ สู่คำตอบที่ใช้งานได้</h2>
+          <p>วางโครงให้การกรอกข้อมูลสั้น ชัด และตรวจสอบที่มาของโมเดลได้</p>
+          <div class="route-lines"><span>BRAND / MODEL</span><span>YEAR / KM</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="estimator" class="workspace" aria-label="แบบฟอร์มประเมินราคา">
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>ข้อมูลรถ</h2><p class="panel-sub">กรอก 4 ช่องหลักตาม baseline serving contract</p></div>
+          <span class="mock-badge">MOCK RESULT</span>
+        </div>
+        <form id="estimate-form">
+          <div class="field-grid">
+            <div class="field">
+              <label for="brand">ยี่ห้อรถ <span class="hint">(จำเป็น)</span></label>
+              <select id="brand" name="brand" required>
+                <option value="">เลือกยี่ห้อ</option>
+                <option>TOYOTA</option><option>HONDA</option><option>ISUZU</option><option>MITSUBISHI</option><option>FORD</option><option>MAZDA</option><option>NISSAN</option><option>MERCEDES-BENZ</option><option>BMW</option><option>อื่น ๆ</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="model">รุ่นรถ <span class="hint">(จำเป็น)</span></label>
+              <input id="model" name="model" list="models" placeholder="เช่น FORTUNER" required autocomplete="off">
+              <datalist id="models"><option value="FORTUNER"><option value="CIVIC"><option value="MU-X"><option value="PAJERO SPORT"><option value="CR-V"><option value="YARIS CROSS"><option value="XPANDER"><option value="C-HR"><option value="CX-5"></datalist>
+            </div>
+            <div class="field">
+              <label for="year">ปีรถ <span class="hint">(ค.ศ.)</span></label>
+              <input id="year" name="year" type="number" min="1950" max="2026" placeholder="เช่น 2020" required>
+            </div>
+            <div class="field">
+              <label for="mileage">เลขไมล์ <span class="hint">(กิโลเมตร)</span></label>
+              <input id="mileage" name="mileage" type="number" min="0" max="2000000" step="1" placeholder="เช่น 80000" required>
+            </div>
+          </div>
+          <div class="form-foot">
+            <button class="primary" type="submit">ดูผลลัพธ์ตัวอย่าง</button>
+            <button class="secondary" type="button" id="reset">ล้างข้อมูล</button>
+            <small>ผลลัพธ์นี้ยังไม่ใช่ราคาจากโมเดล</small>
+          </div>
+        </form>
+      </div>
+
+      <aside class="panel result" aria-live="polite">
+        <div class="result-top"><h2>ผลลัพธ์การประเมิน</h2><p class="panel-sub">พื้นที่สำหรับผลจากโมเดลจริงในเวอร์ชันถัดไป</p></div>
+        <div class="result-body">
+          <div id="placeholder" class="result-placeholder">
+            <div><strong>ยังไม่มีผลลัพธ์</strong><p>กรอกข้อมูลรถทางซ้ายเพื่อดู flow ของหน้าจอ prototype</p></div>
+          </div>
+          <div id="result-data" class="result-data">
+            <span class="price-label">ช่วงราคาตัวอย่างสำหรับ UI เท่านั้น</span>
+            <div class="mock-price">650,000 – 850,000 บาท</div>
+            <div class="spec-row"><span>รถที่กรอก</span><span id="summary-car">—</span></div>
+            <div class="spec-row"><span>ปี / เลขไมล์</span><span id="summary-use">—</span></div>
+            <div class="disclaimer">Mock result: ยังไม่ได้มาจากโมเดลที่เทรนจริง ห้ามใช้ประกอบการซื้อขาย</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="status" class="section" aria-labelledby="status-title">
+      <div class="section-head"><h2 id="status-title">สถานะของโปรเจกต์</h2><p>ข้อมูลด้านล่างเป็นสถานะจริงของงานฝั่ง dataset และ model preparation ไม่ใช่ผลการทำนาย</p></div>
+      <div class="status-grid">
+        <div class="status-card ready"><span class="kicker">ข้อมูลหลัก</span><strong>36,497</strong><p>แถวใน car_dataset_v4_car_type_verified.csv</p></div>
+        <div class="status-card ready"><span class="kicker">การแบ่งข้อมูล</span><strong>80 / 10 / 10</strong><p>train / validation / test โดยกัน group ซ้ำข้ามชุด</p></div>
+        <div class="status-card"><span class="kicker">โมเดลทำนาย</span><strong>ยังไม่เริ่ม</strong><p>prototype นี้เตรียมจุดเชื่อมไว้สำหรับ baseline model</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell"><span>Car Price Lab</span> · UI prototype · Mock result only · Built for the used-car price prediction project</footer>
+
+  <script>
+    (() => {
+      const form = document.querySelector('#estimate-form');
+      const placeholder = document.querySelector('#placeholder');
+      const result = document.querySelector('#result-data');
+      const summaryCar = document.querySelector('#summary-car');
+      const summaryUse = document.querySelector('#summary-use');
+      const fields = ['brand', 'model', 'year', 'mileage'].map(id => document.getElementById(id));
+      const storageKey = 'car-price-lab-demo-form';
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        fields.forEach(field => { if (saved[field.id] !== undefined) field.value = saved[field.id]; });
+      } catch (_) {}
+
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+        const data = Object.fromEntries(new FormData(form).entries());
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        summaryCar.textContent = `${data.brand} ${data.model.toUpperCase()}`;
+        summaryUse.textContent = `${data.year} / ${Number(data.mileage).toLocaleString('th-TH')} กม.`;
+        placeholder.classList.add('hide');
+        result.classList.add('show');
+      });
+
+      document.querySelector('#reset').addEventListener('click', () => {
+        form.reset();
+        localStorage.removeItem(storageKey);
+        placeholder.classList.remove('hide');
+        result.classList.remove('show');
+      });
+    })();
+  </script>
+</body>
+</html>
