@@ -443,47 +443,75 @@
       }
 
       function predictRandomForest(payload, vector) {
-        const { view } = payload;
-        const recordSize = 28;
         let total = 0;
         for (const tree of payload.trees) {
           let node = 0;
-          while (true) {
-            const base = tree.start + node * recordSize;
-            const feature = view.getInt32(base, true);
-            if (feature < 0) {
-              total += view.getFloat64(base + 20, true);
-              break;
-            }
-            const threshold = view.getFloat64(base + 12, true);
-            node = vector[feature] <= threshold ? view.getInt32(base + 4, true) : view.getInt32(base + 8, true);
+          while (tree.features[node] >= 0) {
+            const feature = tree.features[node];
+            node = vector[feature] <= tree.thresholds[node] ? node + 1 : tree.right[node];
           }
+          total += tree.values[node];
         }
         return total / payload.trees.length;
       }
 
+      function readVarint(view, cursor) {
+        let value = 0;
+        let shift = 0;
+        while (true) {
+          if (cursor.offset >= view.byteLength) throw new Error('Random Forest artifact ถูกตัดไม่ครบ');
+          const byte = view.getUint8(cursor.offset);
+          cursor.offset += 1;
+          value += (byte & 127) * (2 ** shift);
+          if ((byte & 128) === 0) return value;
+          shift += 7;
+          if (shift > 35) throw new Error('Random Forest varint ไม่ถูกต้อง');
+        }
+      }
+
       function parseRandomForest(buffer) {
         const magic = String.fromCharCode(...new Uint8Array(buffer, 0, 8));
-        if (magic !== 'CPLRF01\0') throw new Error('โครงสร้าง Random Forest artifact ไม่ถูกต้อง');
+        if (magic !== 'CPLRF03\0') throw new Error('โครงสร้าง Random Forest artifact ไม่ถูกต้อง');
         const view = new DataView(buffer);
-        let offset = 8;
-        const treeCount = view.getUint32(offset, true);
-        offset += 4;
+        const cursor = { offset: 8 };
+        const treeCount = view.getUint32(cursor.offset, true);
+        cursor.offset += 4;
+        const numericFeatures = new Set(Object.values(state.manifest.encoder.numeric_indices).map(Number));
         const trees = [];
         for (let i = 0; i < treeCount; i += 1) {
-          const nodeCount = view.getUint32(offset, true);
-          offset += 4;
-          trees.push({ start: offset, nodeCount });
-          offset += nodeCount * 28;
+          const nodeCount = view.getUint32(cursor.offset, true);
+          cursor.offset += 4;
+          const features = new Int16Array(nodeCount);
+          const right = new Int32Array(nodeCount);
+          const thresholds = new Float32Array(nodeCount);
+          const values = new Float32Array(nodeCount);
+          for (let node = 0; node < nodeCount; node += 1) {
+            const tag = readVarint(view, cursor);
+            if (tag === 0) {
+              features[node] = -1;
+              right[node] = -1;
+              values[node] = view.getFloat32(cursor.offset, true);
+              cursor.offset += 4;
+              continue;
+            }
+            const feature = tag - 1;
+            features[node] = feature;
+            right[node] = node + readVarint(view, cursor);
+            thresholds[node] = numericFeatures.has(feature)
+              ? view.getFloat32(cursor.offset, true)
+              : readVarint(view, cursor) / 2;
+            if (numericFeatures.has(feature)) cursor.offset += 4;
+          }
+          trees.push({ features, right, thresholds, values });
         }
-        if (offset !== buffer.byteLength) throw new Error('Random Forest artifact มีขนาดไม่ตรงกัน');
-        return { format: 'gzip-binary-random-forest-v1', view, trees };
+        if (cursor.offset !== buffer.byteLength) throw new Error('Random Forest artifact มีขนาดไม่ตรงกัน');
+        return { format: 'gzip-varint-random-forest-v1', trees };
       }
 
       async function fetchModel(meta) {
         const response = await fetch(`./${meta.file}`, { cache: 'no-store' });
         if (!response.ok) throw new Error(`โหลด ${meta.name} ไม่สำเร็จ (${response.status})`);
-        if (meta.format === 'gzip-binary-random-forest-v1') {
+        if (meta.format === 'gzip-varint-random-forest-v1') {
           if (!('DecompressionStream' in window)) throw new Error('Browser นี้ไม่รองรับการโหลด Random Forest artifact');
           const stream = response.body.pipeThrough(new DecompressionStream('gzip'));
           return parseRandomForest(await new Response(stream).arrayBuffer());
