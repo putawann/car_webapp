@@ -124,7 +124,11 @@
     .price-label { color: #aab7ae; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
     .price { margin: 7px 0 2px; color: var(--lime); font-size: clamp(34px, 5vw, 48px); font-weight: 950; letter-spacing: -.07em; line-height: 1.05; }
     .price-unit { color: #d9e4d6; font-size: 14px; font-weight: 750; }
-    .result-caption { margin: 9px 0 22px; color: #aab7ae; font-size: 11px; }
+    .result-caption { margin: 9px 0 17px; color: #aab7ae; font-size: 11px; }
+    .selected-model-stat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 18px; }
+    .selected-model-stat div { padding: 10px 9px; background: rgba(200,237,101,.08); border: 1px solid #3c4a43; border-radius: 8px; }
+    .selected-model-stat span { display: block; color: #aab7ae; font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .06em; text-transform: uppercase; }
+    .selected-model-stat strong { display: block; margin-top: 3px; color: var(--lime); font-size: 16px; letter-spacing: -.035em; }
     .spec-list { border-top: 1px solid #3c4a43; }
     .spec-row { display: flex; justify-content: space-between; gap: 15px; padding: 11px 0; border-bottom: 1px solid #3c4a43; font-size: 12px; }
     .spec-row span:first-child { color: #aab7ae; }
@@ -141,6 +145,21 @@
     .note-list { display: grid; gap: 9px; margin: 16px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: 12px; }
     .note-list li { display: flex; gap: 9px; }
     .note-list li::before { content: "↳"; color: var(--rust); font-weight: 900; }
+    .comparison-section { padding: 0 0 76px; }
+    .comparison-head { display: flex; justify-content: space-between; gap: 25px; align-items: end; margin-bottom: 18px; }
+    .comparison-head h2 { margin: 0; font-size: 26px; letter-spacing: -.05em; }
+    .comparison-head p { max-width: 520px; margin: 0; color: var(--muted); font-size: 12px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); background: rgba(249,250,245,.8); }
+    .comparison-table { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 11px; }
+    .comparison-table th { padding: 12px 13px; color: var(--muted); background: var(--paper-deep); font: 800 10px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .04em; text-align: right; white-space: nowrap; }
+    .comparison-table th:first-child, .comparison-table td:first-child { text-align: left; }
+    .comparison-table td { padding: 14px 13px; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
+    .comparison-table tbody tr.active { background: rgba(200,237,101,.25); }
+    .comparison-table tbody tr.active td:first-child { color: var(--rust-deep); font-weight: 900; }
+    .comparison-table .model-cell { font-weight: 800; }
+    .comparison-table .group-label { color: var(--ink-soft); background: #edf2e9; text-align: center; }
+    .comparison-table .r2 { font-weight: 900; }
+    .table-note { margin: 9px 0 0; color: var(--muted); font-size: 10px; }
     footer { padding: 24px 0 42px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
     footer strong { color: var(--ink); }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -158,6 +177,8 @@
       .hero { padding-bottom: 42px; }
       h1 { font-size: clamp(39px, 15vw, 62px); }
       .field-grid, .details { grid-template-columns: 1fr; }
+      .selected-model-stat { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .comparison-head { align-items: start; flex-direction: column; }
       .field.wide { grid-column: auto; }
       .panel-head, form, .result-head, .result-body { padding-left: 20px; padding-right: 20px; }
       .form-foot { align-items: stretch; flex-direction: column; }
@@ -183,34 +204,39 @@
       <div>
         <div class="eyebrow">Live serving contract / 08 fields</div>
         <h1 id="hero-title">รู้ราคาก่อนตัดสินใจซื้อรถมือสอง</h1>
-        <p class="hero-copy">ใส่สเปกรถให้ครบ 8 ตัวแปร แล้วให้โมเดล XGBoost ที่เทรนจากข้อมูลจริงคำนวณราคาโดยประมาณทันที</p>
+        <p class="hero-copy">ใส่สเปกรถให้ครบ 8 ตัวแปร เลือกโมเดลที่ต้องการ แล้วให้โมเดลที่เทรนจากข้อมูลจริงคำนวณราคาโดยประมาณทันที</p>
         <div class="hero-note"><span><b id="load-note">กำลังเตรียมโมเดลสำหรับเว็บ…</b> หน้าเว็บนี้ไม่มีราคาตัวอย่าง — ผลลัพธ์มาจากโมเดลจริงเท่านั้น</span></div>
       </div>
       <aside class="metric-board" aria-label="ข้อมูลโมเดล">
-        <div class="board-label"><span>MODEL / XGBOOST</span><span class="live-dot">BROWSER READY</span></div>
+        <div class="board-label"><span id="board-model">MODEL / XGBOOST</span><span class="live-dot">BROWSER READY</span></div>
         <h2>ข้อมูลรถ 8 ช่อง<br>→ ราคา 1 คำตอบ</h2>
         <div class="metric-list">
           <div class="metric"><span>test R²</span><strong id="metric-r2">—</strong></div>
           <div class="metric"><span>test RMSE</span><strong id="metric-rmse">—</strong><em></em></div>
-          <div class="metric"><span>trees</span><strong id="metric-trees">—</strong></div>
+          <div class="metric"><span id="metric-structure-label">trees</span><strong id="metric-trees">—</strong></div>
           <div class="metric"><span>encoded</span><strong id="metric-features">—</strong><em> dims</em></div>
         </div>
       </aside>
     </section>
 
     <div class="section-kicker" id="estimator">
-      <div><h2>ข้อมูลรถ</h2><p class="panel-sub">ทุกช่องจำเป็น — ค่าตัวเลือกอ้างอิงจากข้อมูลที่ใช้เทรน</p></div>
-      <p>ระบบจะคำนวณใน browser หลังโหลด model artifact สำเร็จ</p>
+      <div><h2>เลือกโมเดลและข้อมูลรถ</h2><p class="panel-sub">ทุกช่องจำเป็น — โมเดลทั้ง 4 ใช้ input 8 ตัวแปรชุดเดียวกัน</p></div>
+      <p>สถิติของโมเดลที่เลือกจะแสดงทั้งบนผลลัพธ์และตารางเปรียบเทียบด้านล่าง</p>
     </div>
 
     <section class="workspace" aria-label="แบบฟอร์มประเมินราคา">
       <div class="panel form-panel">
         <div class="panel-head">
-          <div><h3>กรอกสเปกรถ</h3><p class="panel-sub">ข้อมูลที่ส่งเข้า XGBoost โดยตรง</p></div>
-          <span class="model-badge">LIVE MODEL</span>
+          <div><h3>เลือกโมเดลและกรอกสเปกรถ</h3><p class="panel-sub">ข้อมูลจะถูกส่งเข้าโมเดลที่เลือกโดยตรง</p></div>
+          <span class="model-badge" id="model-badge">LOADING MODELS</span>
         </div>
         <form id="estimate-form" novalidate>
           <div class="field-grid">
+            <div class="field wide">
+              <label for="model-choice">โมเดลที่จะใช้ทำนาย <span class="field-code">model</span></label>
+              <select id="model-choice" name="model_choice" required disabled><option value="">กำลังโหลดโมเดล…</option></select>
+              <div class="field-help" id="model-help">เลือกโมเดลเพื่อโหลด artifact และดูค่าสถิติของโมเดลนั้น</div>
+            </div>
             <div class="field">
               <label for="brand">ยี่ห้อรถ <span class="field-code">brand</span></label>
               <select id="brand" name="brand" required disabled><option value="">กำลังโหลด…</option></select>
@@ -261,17 +287,24 @@
       </div>
 
       <aside class="panel result-panel" aria-live="polite" aria-atomic="true">
-        <div class="result-head"><h3>ผลลัพธ์จากโมเดล</h3><p class="panel-sub">XGBoost Regression · 8 features · ไม่มี mock result</p></div>
+        <div class="result-head"><h3>ผลลัพธ์จากโมเดลที่เลือก</h3><p class="panel-sub" id="result-model-note">กำลังโหลด model artifact…</p></div>
         <div class="result-body">
           <div id="result-empty" class="result-empty">
-            <div><strong>รอข้อมูลรถ</strong><p>กรอกข้อมูลทั้ง 8 ช่องทางซ้าย แล้วกด “ประเมินราคาจริง”</p></div>
+            <div><strong>รอข้อมูลรถ</strong><p>เลือกโมเดล กรอกข้อมูลทั้ง 8 ช่อง แล้วกด “ประเมินราคาจริง”</p></div>
           </div>
           <div id="result-live" class="result-live">
-            <span class="price-label">predicted market price</span>
+            <span class="price-label" id="result-model-name">predicted market price</span>
             <div class="price" id="predicted-price">—</div>
             <div class="price-unit">บาทโดยประมาณ</div>
-            <p class="result-caption">ค่าที่แสดงเป็นผลจากโมเดล XGBoost ที่ฝังในเว็บ ไม่ใช่ราคาประกาศหรือการประเมินโดยผู้เชี่ยวชาญ</p>
+            <p class="result-caption">ค่าที่แสดงเป็นผลจากโมเดลที่เลือกและคำนวณจาก artifact จริง ไม่ใช่ราคาประกาศหรือการประเมินโดยผู้เชี่ยวชาญ</p>
+            <div class="selected-model-stat" aria-label="ค่าสถิติของโมเดลที่เลือก">
+              <div><span>Test R²</span><strong id="result-r2">—</strong></div>
+              <div><span>Test RMSE</span><strong id="result-rmse">—</strong></div>
+              <div><span>Test MAE</span><strong id="result-mae">—</strong></div>
+            </div>
+            <p class="result-caption" id="result-validation-note">Validation —</p>
             <div class="spec-list">
+              <div class="spec-row"><span>โมเดล</span><span id="summary-model">—</span></div>
               <div class="spec-row"><span>รถที่กรอก</span><span id="summary-car">—</span></div>
               <div class="spec-row"><span>ประเภท / เชื้อเพลิง</span><span id="summary-type">—</span></div>
               <div class="spec-row"><span>เครื่อง / เกียร์</span><span id="summary-engine">—</span></div>
@@ -301,9 +334,23 @@
         </ul>
       </article>
     </section>
+
+    <section id="comparison" class="comparison-section" aria-labelledby="comparison-title">
+      <div class="comparison-head">
+        <div><h2 id="comparison-title">ตารางเปรียบเทียบโมเดลทั้ง 4</h2><p>ค่าทั้งหมดคำนวณจาก validation และ test split ของชุดข้อมูลเดียวกัน โมเดลที่กำลังเลือกจะถูกไฮไลต์</p></div>
+        <p>MAE / RMSE เป็นบาท · R² ยิ่งสูงยิ่งดี · RMSE และ MAE ยิ่งต่ำยิ่งดี</p>
+      </div>
+      <div class="table-wrap">
+        <table class="comparison-table" id="comparison-table">
+          <thead><tr><th rowspan="2">โมเดล</th><th colspan="3" class="group-label">Validation</th><th colspan="3" class="group-label">Test</th></tr><tr><th>MAE</th><th>RMSE</th><th>R²</th><th>MAE</th><th>RMSE</th><th>R²</th></tr></thead>
+          <tbody id="comparison-body"><tr><td colspan="7">กำลังโหลดสถิติ…</td></tr></tbody>
+        </table>
+      </div>
+      <p class="table-note">หมายเหตุ: ค่าสถิติใช้เพื่อเปรียบเทียบผลบนชุดข้อมูลที่กันไว้ ไม่ใช่การรับประกันราคาซื้อขายจริง</p>
+    </section>
   </main>
 
-  <footer class="shell"><strong>Car Price Lab</strong> · live XGBoost estimator · model artifact: xgboost_regression_v4_8feat.joblib · GitHub Pages demo</footer>
+  <footer class="shell"><strong>Car Price Lab</strong> · live 8-feature estimator · 4 trained model artifacts · GitHub Pages demo</footer>
 
   <script>
     (() => {
@@ -311,19 +358,19 @@
 
       const form = document.querySelector('#estimate-form');
       const fields = Array.from(form.querySelectorAll('input, select'));
+      const modelChoice = document.querySelector('#model-choice');
       const brand = document.querySelector('#brand');
       const model = document.querySelector('#model');
-      const modelData = { current: null };
-      const storageKey = 'car-price-lab-live-form-v1';
       const resultEmpty = document.querySelector('#result-empty');
       const resultLive = document.querySelector('#result-live');
       const formStatus = document.querySelector('#form-status');
       const loadNote = document.querySelector('#load-note');
       const predictButton = document.querySelector('#predict-button');
+      const storageKey = 'car-price-lab-live-form-v2';
+      const state = { manifest: null, currentMeta: null, currentPayload: null, cache: new Map(), loadToken: 0 };
 
       const $ = (id) => document.getElementById(id);
       const numberFormat = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 0 });
-      const decimalFormat = new Intl.NumberFormat('th-TH', { maximumFractionDigits: 1 });
 
       function setStatus(message, isError = false) {
         formStatus.textContent = message;
@@ -336,40 +383,184 @@
       }
 
       function populateModels(selected = '') {
-        const values = modelData.current?.brand_models?.[brand.value] || [];
+        const values = state.manifest?.encoder?.brand_models?.[brand.value] || [];
         addOptions(model, values, values.length ? 'เลือกรุ่นรถ' : 'เลือกยี่ห้อก่อน');
         if (values.includes(selected)) model.value = selected;
       }
 
-      function encodeInput(data) {
-        const m = modelData.current;
-        const vector = new Array(m.encoded_features).fill(Number.NaN);
+      function getMeta(id = modelChoice.value) {
+        return state.manifest.models.find((item) => item.id === id);
+      }
+
+      function formatMetric(value, digits = 0) {
+        return digits ? Number(value).toFixed(digits) : numberFormat.format(Math.round(value));
+      }
+
+      function encodeInput(data, sparse = false) {
+        const encoder = state.manifest.encoder;
+        const vector = new Array(encoder.encoded_features).fill(sparse ? Number.NaN : 0);
         for (const column of ['brand', 'model', 'car_type', 'fuel_type', 'gear_type']) {
-          const categories = m.categorical[column];
+          const categories = encoder.categorical[column];
           const categoryIndex = categories.indexOf(data[column]);
           if (categoryIndex < 0) throw new Error(`ไม่พบค่า ${column} ในชุดข้อมูลของโมเดล`);
-          vector[m.offsets[column] + categoryIndex] = 1;
+          vector[encoder.offsets[column] + categoryIndex] = 1;
         }
-        vector[m.numeric_indices.engine_capacity] = data.engine_capacity || Number.NaN;
-        vector[m.numeric_indices.year] = data.year || Number.NaN;
-        vector[m.numeric_indices.mileage] = data.mileage || Number.NaN;
+        for (const column of ['engine_capacity', 'year', 'mileage']) {
+          const value = Number(data[column]);
+          vector[encoder.numeric_indices[column]] = sparse && value === 0 ? Number.NaN : value;
+        }
         return vector;
       }
 
-      function predictTree(node, vector) {
-        while (node.v === undefined) {
-          const value = vector[node.f];
-          node = Number.isNaN(value) ? node.m : (value < node.t ? node.y : node.n);
+      function predictLinear(payload, vector) {
+        let result = payload.intercept;
+        for (let i = 0; i < payload.coefficients.length; i += 1) result += payload.coefficients[i] * vector[i];
+        return result;
+      }
+
+      function predictSklearnTree(payload, vector) {
+        const tree = payload.tree;
+        let node = 0;
+        while (tree.features[node] >= 0) {
+          const feature = tree.features[node];
+          node = vector[feature] <= tree.thresholds[node] ? tree.left[node] : tree.right[node];
         }
-        return node.v;
+        return tree.values[node];
+      }
+
+      function predictXgbTree(tree, vector) {
+        while (tree.v === undefined) {
+          const value = vector[tree.f];
+          tree = Number.isNaN(value) ? tree.m : (value < tree.t ? tree.y : tree.n);
+        }
+        return tree.v;
+      }
+
+      function predictXgb(payload, vector) {
+        let result = payload.base_score;
+        for (const tree of payload.trees) result += payload.prediction_scale * predictXgbTree(tree, vector);
+        return result;
+      }
+
+      function predictRandomForest(payload, vector) {
+        const { view } = payload;
+        const recordSize = 28;
+        let total = 0;
+        for (const tree of payload.trees) {
+          let node = 0;
+          while (true) {
+            const base = tree.start + node * recordSize;
+            const feature = view.getInt32(base, true);
+            if (feature < 0) {
+              total += view.getFloat64(base + 20, true);
+              break;
+            }
+            const threshold = view.getFloat64(base + 12, true);
+            node = vector[feature] <= threshold ? view.getInt32(base + 4, true) : view.getInt32(base + 8, true);
+          }
+        }
+        return total / payload.trees.length;
+      }
+
+      function parseRandomForest(buffer) {
+        const magic = String.fromCharCode(...new Uint8Array(buffer, 0, 8));
+        if (magic !== 'CPLRF01\0') throw new Error('โครงสร้าง Random Forest artifact ไม่ถูกต้อง');
+        const view = new DataView(buffer);
+        let offset = 8;
+        const treeCount = view.getUint32(offset, true);
+        offset += 4;
+        const trees = [];
+        for (let i = 0; i < treeCount; i += 1) {
+          const nodeCount = view.getUint32(offset, true);
+          offset += 4;
+          trees.push({ start: offset, nodeCount });
+          offset += nodeCount * 28;
+        }
+        if (offset !== buffer.byteLength) throw new Error('Random Forest artifact มีขนาดไม่ตรงกัน');
+        return { format: 'gzip-binary-random-forest-v1', view, trees };
+      }
+
+      async function fetchModel(meta) {
+        const response = await fetch(`./${meta.file}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`โหลด ${meta.name} ไม่สำเร็จ (${response.status})`);
+        if (meta.format === 'gzip-binary-random-forest-v1') {
+          if (!('DecompressionStream' in window)) throw new Error('Browser นี้ไม่รองรับการโหลด Random Forest artifact');
+          const stream = response.body.pipeThrough(new DecompressionStream('gzip'));
+          return parseRandomForest(await new Response(stream).arrayBuffer());
+        }
+        return response.json();
+      }
+
+      function updateSelectedStats(meta) {
+        const test = meta.metrics.test;
+        const validation = meta.metrics.validation;
+        $('board-model').textContent = `MODEL / ${meta.id.replace('_', ' ').toUpperCase()}`;
+        $('model-badge').textContent = `LIVE · ${meta.id.replace('_', ' ').toUpperCase()}`;
+        $('model-help').textContent = `${meta.name} · Test R² ${formatMetric(test.R2, 4)} · ${meta.artifact}`;
+        $('result-model-note').textContent = `${meta.name} · 8 features · artifact จริง`;
+        $('result-model-name').textContent = `${meta.name} · predicted market price`;
+        $('metric-r2').textContent = formatMetric(test.R2, 4);
+        $('metric-rmse').textContent = formatMetric(test.RMSE);
+        $('metric-structure-label').textContent = meta.structure_label;
+        $('metric-trees').textContent = numberFormat.format(meta.structure_value);
+        $('metric-features').textContent = numberFormat.format(state.manifest.encoder.encoded_features);
+        $('result-r2').textContent = formatMetric(test.R2, 4);
+        $('result-rmse').textContent = formatMetric(test.RMSE);
+        $('result-mae').textContent = formatMetric(test.MAE);
+        $('result-validation-note').textContent = `Validation · R² ${formatMetric(validation.R2, 4)} · RMSE ${formatMetric(validation.RMSE)} · MAE ${formatMetric(validation.MAE)}`;
+        updateComparison(meta.id);
+      }
+
+      function updateComparison(activeId) {
+        const body = $('comparison-body');
+        body.replaceChildren();
+        for (const meta of state.manifest.models) {
+          const validation = meta.metrics.validation;
+          const test = meta.metrics.test;
+          const row = document.createElement('tr');
+          if (meta.id === activeId) row.className = 'active';
+          row.innerHTML = `<td class="model-cell">${meta.name}</td><td>${formatMetric(validation.MAE)}</td><td>${formatMetric(validation.RMSE)}</td><td class="r2">${formatMetric(validation.R2, 4)}</td><td>${formatMetric(test.MAE)}</td><td>${formatMetric(test.RMSE)}</td><td class="r2">${formatMetric(test.R2, 4)}</td>`;
+          body.appendChild(row);
+        }
+      }
+
+      async function loadModel(id) {
+        const meta = getMeta(id);
+        if (!meta) return;
+        const token = ++state.loadToken;
+        state.currentMeta = meta;
+        state.currentPayload = null;
+        predictButton.disabled = true;
+        resultEmpty.classList.remove('hide');
+        resultLive.classList.remove('show');
+        updateSelectedStats(meta);
+        setStatus(`กำลังโหลด ${meta.name}…`);
+        loadNote.textContent = `กำลังโหลด ${meta.name}`;
+        try {
+          let payload = state.cache.get(meta.id);
+          if (!payload) {
+            payload = await fetchModel(meta);
+            state.cache.set(meta.id, payload);
+          }
+          if (token !== state.loadToken) return;
+          state.currentPayload = payload;
+          predictButton.disabled = false;
+          loadNote.textContent = `${meta.name} พร้อมใช้งาน`;
+          setStatus('พร้อมทำนาย');
+        } catch (error) {
+          if (token !== state.loadToken) return;
+          setStatus(error.message || 'ไม่สามารถโหลดโมเดลได้', true);
+          loadNote.textContent = 'โหลดโมเดลไม่สำเร็จ';
+        }
       }
 
       function predict(data) {
-        const m = modelData.current;
-        const vector = encodeInput(data);
-        let prediction = m.base_score;
-        for (const tree of m.trees) prediction += m.prediction_scale * predictTree(tree, vector);
-        return prediction;
+        const meta = state.currentMeta;
+        const payload = state.currentPayload;
+        if (meta.id === 'linear') return predictLinear(payload, encodeInput(data));
+        if (meta.id === 'decision_tree') return predictSklearnTree(payload, encodeInput(data));
+        if (meta.id === 'random_forest') return predictRandomForest(payload, encodeInput(data));
+        return predictXgb(payload, encodeInput(data, true));
       }
 
       function collectData() {
@@ -377,14 +568,14 @@
         data.engine_capacity = Number(data.engine_capacity);
         data.year = Number(data.year);
         data.mileage = Number(data.mileage);
-        const ranges = modelData.current.ranges;
+        const ranges = state.manifest.encoder.ranges;
         for (const key of ['engine_capacity', 'year', 'mileage']) {
           const [min, max] = ranges[key];
           if (!Number.isFinite(data[key]) || data[key] < min || data[key] > max) {
             throw new Error(`${key} ต้องอยู่ระหว่าง ${numberFormat.format(min)}–${numberFormat.format(max)}`);
           }
         }
-        if (!(modelData.current.brand_models[data.brand] || []).includes(data.model)) {
+        if (!(state.manifest.encoder.brand_models[data.brand] || []).includes(data.model)) {
           throw new Error('รุ่นรถไม่ตรงกับยี่ห้อที่เลือก');
         }
         return data;
@@ -392,6 +583,7 @@
 
       function showResult(data, prediction) {
         $('predicted-price').textContent = numberFormat.format(Math.round(prediction));
+        $('summary-model').textContent = state.currentMeta.name;
         $('summary-car').textContent = `${data.brand} ${data.model}`;
         $('summary-type').textContent = `${data.car_type} / ${data.fuel_type}`;
         $('summary-engine').textContent = `${numberFormat.format(data.engine_capacity)} cc / ${data.gear_type}`;
@@ -401,45 +593,52 @@
       }
 
       function saveForm() {
-        const data = Object.fromEntries(new FormData(form).entries());
-        localStorage.setItem(storageKey, JSON.stringify(data));
+        localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(new FormData(form).entries())));
       }
 
       function restoreForm() {
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
-          if (!saved.brand) return;
-          brand.value = saved.brand;
-          populateModels(saved.model || '');
+          if (saved.model_choice && getMeta(saved.model_choice)) modelChoice.value = saved.model_choice;
+          if (saved.brand) {
+            brand.value = saved.brand;
+            populateModels(saved.model || '');
+          }
           for (const field of fields) {
-            if (field.id !== 'brand' && field.id !== 'model' && saved[field.name] !== undefined) field.value = saved[field.name];
+            if (!['brand', 'model', 'model-choice'].includes(field.id) && saved[field.name] !== undefined) field.value = saved[field.name];
           }
         } catch (_) { /* stale local state is safe to ignore */ }
+        return modelChoice.value || state.manifest.models.find((meta) => meta.default).id;
       }
 
-      function setReady() {
-        const m = modelData.current;
-        addOptions(brand, m.categorical.brand, 'เลือกยี่ห้อรถ');
-        addOptions($('car_type'), m.categorical.car_type, 'เลือกประเภทรถ');
-        addOptions($('fuel_type'), m.categorical.fuel_type, 'เลือกเชื้อเพลิง');
-        addOptions($('gear_type'), m.categorical.gear_type, 'เลือกประเภทเกียร์');
-        $('engine_capacity').min = m.ranges.engine_capacity[0];
-        $('engine_capacity').max = m.ranges.engine_capacity[1];
+      function configureManifest(manifest) {
+        if (manifest.schema_version !== 2 || manifest.models.length !== 4 || manifest.encoder.encoded_features !== 586) {
+          throw new Error('โครงสร้าง model manifest ไม่ตรงกับ serving contract');
+        }
+        state.manifest = manifest;
+        addOptions(modelChoice, manifest.models.map((meta) => meta.id), 'เลือกโมเดล');
+        for (const option of modelChoice.options) {
+          const meta = getMeta(option.value);
+          if (meta) option.textContent = meta.name;
+        }
+        addOptions(brand, manifest.encoder.categorical.brand, 'เลือกยี่ห้อรถ');
+        addOptions($('car_type'), manifest.encoder.categorical.car_type, 'เลือกประเภทรถ');
+        addOptions($('fuel_type'), manifest.encoder.categorical.fuel_type, 'เลือกเชื้อเพลิง');
+        addOptions($('gear_type'), manifest.encoder.categorical.gear_type, 'เลือกประเภทเกียร์');
+        $('engine_capacity').min = manifest.encoder.ranges.engine_capacity[0];
+        $('engine_capacity').max = manifest.encoder.ranges.engine_capacity[1];
         fields.forEach((field) => { field.disabled = false; });
-        predictButton.disabled = false;
-        $('metric-r2').textContent = m.metrics.test.R2.toFixed(4);
-        $('metric-rmse').textContent = numberFormat.format(Math.round(m.metrics.test.RMSE));
-        $('metric-trees').textContent = numberFormat.format(m.trees.length);
-        $('metric-features').textContent = numberFormat.format(m.encoded_features);
-        loadNote.textContent = 'โมเดลพร้อมใช้งาน';
-        setStatus('พร้อมทำนาย');
-        restoreForm();
+        updateComparison(manifest.models.find((meta) => meta.default).id);
+        const selectedId = restoreForm();
+        modelChoice.value = selectedId;
+        loadModel(selectedId);
       }
 
       brand.addEventListener('change', () => populateModels());
+      modelChoice.addEventListener('change', () => loadModel(modelChoice.value));
       form.addEventListener('submit', (event) => {
         event.preventDefault();
-        if (!modelData.current || !form.reportValidity()) return;
+        if (!state.currentPayload || !form.reportValidity()) return;
         try {
           setStatus('กำลังคำนวณ…');
           predictButton.disabled = true;
@@ -448,7 +647,7 @@
           if (!Number.isFinite(prediction)) throw new Error('โมเดลคืนค่าที่ไม่ถูกต้อง');
           showResult(data, prediction);
           saveForm();
-          setStatus('ทำนายสำเร็จ');
+          setStatus(`ทำนายสำเร็จ · ${state.currentMeta.name}`);
         } catch (error) {
           setStatus(error.message || 'ไม่สามารถทำนายได้', true);
         } finally {
@@ -458,26 +657,21 @@
       $('reset').addEventListener('click', () => {
         HTMLFormElement.prototype.reset.call(form);
         populateModels();
+        if (state.currentMeta) modelChoice.value = state.currentMeta.id;
         localStorage.removeItem(storageKey);
         resultEmpty.classList.remove('hide');
         resultLive.classList.remove('show');
-        if (modelData.current) setStatus('พร้อมทำนาย');
+        if (state.currentPayload) setStatus('พร้อมทำนาย');
       });
 
-      fetch('./model.json', { cache: 'no-store' })
+      fetch('./model-manifest.json', { cache: 'no-store' })
         .then((response) => {
-          if (!response.ok) throw new Error(`โหลด model.json ไม่สำเร็จ (${response.status})`);
+          if (!response.ok) throw new Error(`โหลด model-manifest.json ไม่สำเร็จ (${response.status})`);
           return response.json();
         })
-        .then((payload) => {
-          if (payload.schema_version !== 1 || payload.trees?.length !== 100 || payload.encoded_features !== 586) {
-            throw new Error('โครงสร้าง model artifact ไม่ตรงกับ serving contract');
-          }
-          modelData.current = payload;
-          setReady();
-        })
+        .then(configureManifest)
         .catch((error) => {
-          loadNote.textContent = 'โหลดโมเดลไม่สำเร็จ';
+          loadNote.textContent = 'โหลด model manifest ไม่สำเร็จ';
           setStatus(error.message || 'ไม่สามารถโหลดโมเดลได้', true);
         });
     })();
